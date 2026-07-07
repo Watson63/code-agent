@@ -36,7 +36,27 @@ function createWindow() {
     },
   });
   win.removeMenu();
-  win.loadFile(path.join(__dirname, "renderer", "index.html"));
+
+  // Find index.html even if the folder structure was flattened during unzip
+  const fs = require("fs");
+  const candidates = [
+    path.join(__dirname, "renderer", "index.html"),
+    path.join(__dirname, "index.html"),
+    path.join(process.cwd(), "renderer", "index.html"),
+  ];
+  const found = candidates.find(p => fs.existsSync(p));
+  if (!found) {
+    dialog.showErrorBox(
+      "Workbench can't find its interface files",
+      "index.html was not found. Looked in:\n\n" + candidates.join("\n") +
+      "\n\nMake sure the 'renderer' folder (with index.html, styles.css, " +
+      "renderer.js) sits next to main.js, and that you run 'npm start' " +
+      "from inside the agent-ui folder."
+    );
+    app.quit();
+    return;
+  }
+  win.loadFile(found);
 }
 
 function makeAgent() {
@@ -60,6 +80,75 @@ function makeAgent() {
     },
   });
 }
+
+// ---- speed/intelligence modes ------------------------------------------------
+// quick: fits entirely in the RTX 4070's 8GB VRAM -> fast (~40+ tok/s)
+// smart: MoE model spanning VRAM + system RAM -> slower but much more capable
+const MODE_PRESETS = {
+  quick: { candidates: ["qwen3:8b", "qwen2.5-coder:7b", "qwen3:4b"] },
+  smart: { candidates: ["qwen3:30b-a3b", "qwen3:30b"] },
+};
+
+async function installedModels() {
+  const res = await fetch(`${settings.ollamaUrl}/api/tags`);
+  const data = await res.json();
+  return (data.models || []).map(m => m.name);
+}
+
+ipcMain.handle("set-mode", async (_e, mode) => {
+  const preset = MODE_PRESETS[mode];
+  if (!preset) return { ok: false, error: "Unknown mode" };
+  let installed = [];
+  try { installed = await installedModels(); }
+  catch { return { ok: false, error: "Can't reach Ollama. Open the Ollama app and try again." }; }
+  const match = preset.candidates.find(c =>
+    installed.some(m => m === c || m.startsWith(c + ":") || m.startsWith(c + "-")));
+  if (!match) {
+    // model needs a one-time download
+    return { ok: true, needsPull: preset.candidates[0] };
+  }
+  const full = installed.find(m => m === match || m.startsWith(match));
+  settings.model = full;
+  if (agent) agent.model = full;
+  return { ok: true, model: full };
+});
+
+ipcMain.handle("pull-model", async (_e, name) => {
+  try {
+    const res = await fetch(`${settings.ollamaUrl}/api/pull`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: name, stream: true }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const decoder = new TextDecoder();
+    let buf = "";
+    for await (const chunk of res.body) {
+      buf += decoder.decode(chunk, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        let msg;
+        try { msg = JSON.parse(line); } catch { continue; }
+        if (msg.error) throw new Error(msg.error);
+        win.webContents.send("agent:pull", {
+          model: name,
+          status: msg.status || "",
+          completed: msg.completed || 0,
+          total: msg.total || 0,
+        });
+      }
+    }
+    settings.model = name;
+    if (agent) agent.model = name;
+    win.webContents.send("agent:pull", { model: name, status: "done" });
+    return { ok: true, model: name };
+  } catch (e) {
+    return { ok: false, error: String(e.message || e) };
+  }
+});
 
 // ---- IPC handlers -----------------------------------------------------------
 
