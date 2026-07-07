@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self'; script-src 'self'" />
+  <title>Workbench</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="wordmark">Workbench</span>
+      <span class="tagline">Runs privately on this computer</span>
+    </div>
+    <div class="controls">
+      <button id="folderBtn" class="btn btn-quiet" title="Pick the project this assistant may work on">
+        Choose folder
+      </button>
+      <span id="folderLabel" class="folder-label">No folder chosen</span>
+      <select id="modelSelect" class="model-select" title="Which local model to use"></select>
+      <button id="newChatBtn" class="btn btn-quiet">New chat</button>
+      <label class="toggle" title="Skip the Allow / Don't allow questions">
+        <input type="checkbox" id="autoApprove" />
+        <span>Auto-approve</span>
+      </label>
+    </div>
+  </header>
+
+  <main id="chat" class="chat" aria-live="polite">
+    <div id="emptyState" class="empty-state">
+      <h1>What should we work on?</h1>
+      <p>Pick a project folder, then describe the job in plain words.<br />
+         The assistant will ask before it changes anything.</p>
+      <button id="emptyFolderBtn" class="btn btn-primary">Choose a project folder</button>
+      <div class="starters" id="starters" hidden>
+        <span class="starters-label">Try one of these:</span>
+        <button class="starter">Explain what this project does</button>
+        <button class="starter">Find every TODO comment and list them</button>
+        <button class="starter">Check this folder for anything that looks broken</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div id="statusBar" class="status-bar" hidden>
+      <span id="statusText" class="status-text"></span>
+      <div class="meter" title="How much working memory this conversation has used">
+        <div id="planks" class="planks"></div>
+        <span id="ctxLabel" class="ctx-label"></span>
+      </div>
+      <button id="stopBtn" class="btn btn-stop" hidden>Stop</button>
+    </div>
+    <div class="composer">
+      <textarea id="input" rows="2"
+        placeholder="Describe the job… e.g. “Check aquateck_catalog.csv for duplicate SKUs”"></textarea>
+      <button id="sendBtn" class="btn btn-primary">Send</button>
+    </div>
+  </footer>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
