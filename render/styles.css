@@ -1,0 +1,344 @@
+/* =========================================================
+   Workbench — Quality Red Tag Floors local assistant
+   Palette:
+     --parchment  #F7F5EF   background (QRTF brand)
+     --ink        #1A1A1A   text (QRTF brand)
+     --forest     #224720   primary (QRTF brand)
+     --forest-2   #2F5E2B   hover / lighter green
+     --oak        #C89B5F   floorboard planks (empty)
+     --oak-deep   #8A6532   plank grain lines
+     --card       #FFFFFF   raised surfaces
+     --line       #E2DDD0   hairlines
+   ========================================================= */
+
+:root {
+  --parchment: #F7F5EF;
+  --ink: #1A1A1A;
+  --forest: #224720;
+  --forest-2: #2F5E2B;
+  --oak: #C89B5F;
+  --oak-deep: #8A6532;
+  --card: #FFFFFF;
+  --line: #E2DDD0;
+  --warn: #A66A00;
+  --danger: #8C2B1F;
+  --radius: 10px;
+  --sans: "Segoe UI", system-ui, sans-serif;
+  --serif: Georgia, "Times New Roman", serif;
+  --mono: "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html, body { height: 100%; }
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--parchment);
+}
+
+button { font: inherit; cursor: pointer; }
+button:focus-visible, textarea:focus-visible, select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+/* ---------- top bar ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 18px;
+  background: var(--card);
+  border-bottom: 3px solid var(--forest);
+  flex-wrap: wrap;
+}
+
+.brand { display: flex; align-items: baseline; gap: 10px; }
+
+.wordmark {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--forest);
+  letter-spacing: 0.01em;
+}
+
+.tagline { font-size: 12px; color: #6b675e; }
+
+.controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.folder-label {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: #6b675e;
+}
+
+.model-select {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 13px;
+}
+
+.toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.toggle input { accent-color: var(--forest); }
+
+/* ---------- buttons ---------- */
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+}
+
+.btn-primary { background: var(--forest); color: #fff; }
+.btn-primary:hover { background: var(--forest-2); }
+.btn-primary:disabled { background: #9aa694; cursor: default; }
+
+.btn-quiet {
+  background: transparent;
+  color: var(--forest);
+  border: 1px solid var(--forest);
+}
+.btn-quiet:hover { background: rgba(34, 71, 32, 0.07); }
+
+.btn-stop { background: var(--danger); color: #fff; padding: 4px 12px; }
+
+/* ---------- chat ---------- */
+
+.chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px clamp(16px, 8vw, 120px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-state {
+  margin: auto;
+  text-align: center;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.empty-state h1 {
+  font-family: var(--serif);
+  font-size: 30px;
+  color: var(--forest);
+}
+
+.empty-state p { color: #55524a; line-height: 1.5; }
+
+.starters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.starters-label { font-size: 12px; color: #6b675e; }
+.starter {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: left;
+}
+.starter:hover { border-color: var(--forest); }
+
+.msg {
+  max-width: 72ch;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg-user {
+  align-self: flex-end;
+  background: var(--forest);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+}
+
+.msg-agent {
+  align-self: flex-start;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 3px;
+}
+
+.msg-error {
+  align-self: center;
+  background: #F6E8E5;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.tool-chip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #55524a;
+  background: rgba(34, 71, 32, 0.06);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.tool-chip::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--oak-deep);
+}
+
+/* ---------- approval card ---------- */
+
+.approval {
+  align-self: stretch;
+  background: var(--card);
+  border: 1px solid var(--oak);
+  border-left: 5px solid var(--oak-deep);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.approval-title { font-weight: 700; }
+.approval-title .kind {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--oak-deep);
+  margin-right: 8px;
+}
+
+.approval pre {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: #FBFAF6;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.approval pre .add { color: var(--forest); }
+.approval pre .del { color: var(--danger); }
+
+.approval-actions { display: flex; gap: 10px; }
+.approval-actions .btn-deny {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+.approval.decided { opacity: 0.55; }
+.approval .decision { font-size: 12px; color: #6b675e; }
+
+/* ---------- status bar + floorboard meter ---------- */
+
+.dock {
+  border-top: 1px solid var(--line);
+  background: var(--card);
+  padding: 8px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12.5px;
+  color: #55524a;
+}
+
+.status-text { min-width: 190px; }
+
+.working-dots::after {
+  content: "";
+  animation: dots 1.2s steps(4, end) infinite;
+}
+@keyframes dots { 0% { content: ""; } 25% { content: "."; }
+  50% { content: ".."; } 75% { content: "..."; } }
+@media (prefers-reduced-motion: reduce) {
+  .working-dots::after { content: "…"; animation: none; }
+}
+
+/* The signature: context usage shown as a floor being laid, plank by plank */
+.meter { display: flex; align-items: center; gap: 10px; }
+
+.planks { display: flex; gap: 2px; }
+
+.plank {
+  width: 22px;
+  height: 12px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg, #EFE9DC 0 5px, #E6DECC 5px 6px);   /* bare subfloor */
+  border: 1px solid var(--line);
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+.plank.laid {
+  background: repeating-linear-gradient(
+    90deg, var(--oak) 0 5px, var(--oak-deep) 5px 6px); /* oak grain */
+  border-color: var(--oak-deep);
+}
+
+.plank.laid.warn {
+  background: repeating-linear-gradient(90deg, #D9A441 0 5px, #A66A00 5px 6px);
+  border-color: var(--warn);
+}
+
+.plank.laid.danger {
+  background: repeating-linear-gradient(90deg, #C4573F 0 5px, #8C2B1F 5px 6px);
+  border-color: var(--danger);
+}
+
+.ctx-label { font-family: var(--mono); font-size: 11.5px; }
+
+/* ---------- composer ---------- */
+
+.composer { display: flex; gap: 10px; align-items: flex-end; }
+
+.composer textarea {
+  flex: 1;
+  resize: none;
+  font: inherit;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--parchment);
+}
+.composer textarea:focus { border-color: var(--forest); }
+
+@media (max-width: 760px) {
+  .chat { padding: 16px; }
+  .status-text { min-width: 0; }
+}
