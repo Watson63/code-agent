@@ -95,6 +95,46 @@ input:focus-visible {
 .toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 .toggle input { accent-color: var(--forest); }
 
+/* ---------- mode switch ---------- */
+
+.mode-switch {
+  display: inline-flex;
+  border: 1px solid var(--forest);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--forest);
+  padding: 7px 14px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.mode-btn + .mode-btn { border-left: 1px solid var(--forest); }
+
+.mode-btn.active { background: var(--forest); color: #fff; }
+.mode-btn:not(.active):hover { background: rgba(34, 71, 32, 0.07); }
+
+/* ---------- download progress ---------- */
+
+.dl-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.dl-bar > div {
+  height: 100%;
+  width: 0%;
+  background: var(--forest);
+  transition: width 0.3s ease;
+}
+
 /* ---------- buttons ---------- */
 
 .btn {

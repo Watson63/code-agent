@@ -14,11 +14,22 @@
       <span class="tagline">Runs privately on this computer</span>
     </div>
     <div class="controls">
+      <div class="mode-switch" role="group" aria-label="Assistant mode">
+        <button id="modeQuick" class="mode-btn active"
+          title="Fast answers. Small model that fits fully on the graphics card.">Quick</button>
+        <button id="modeSmart" class="mode-btn"
+          title="Better answers for harder jobs. Bigger model that also uses regular memory — slower.">Smart</button>
+      </div>
       <button id="folderBtn" class="btn btn-quiet" title="Pick the project this assistant may work on">
         Choose folder
       </button>
       <span id="folderLabel" class="folder-label">No folder chosen</span>
       <select id="modelSelect" class="model-select" title="Which local model to use"></select>
+      <select id="ctxSelect" class="model-select" title="Working memory size. Bigger handles longer tasks but uses more graphics memory">
+        <option value="8192">Memory: 8k</option>
+        <option value="16384" selected>Memory: 16k</option>
+        <option value="32768">Memory: 32k</option>
+      </select>
       <button id="newChatBtn" class="btn btn-quiet">New chat</button>
       <label class="toggle" title="Skip the Allow / Don't allow questions">
         <input type="checkbox" id="autoApprove" />

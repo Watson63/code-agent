@@ -16,10 +16,12 @@ const planksEl = document.getElementById("planks");
 const ctxLabel = document.getElementById("ctxLabel");
 const stopBtn = document.getElementById("stopBtn");
 const starters = document.getElementById("starters");
+const ctxSelect = document.getElementById("ctxSelect");
 
 const PLANK_COUNT = 14;
 let busy = false;
 let folderChosen = false;
+let currentCtx = parseInt(ctxSelect.value, 10);
 
 /* ---------- build the floorboard meter ---------- */
 for (let i = 0; i < PLANK_COUNT; i++) {
@@ -158,7 +160,7 @@ async function chooseFolder() {
   emptyFolderBtn.hidden = true;
   starters.hidden = false;
   setBusy(false, "Ready");
-  setMeter(0, 16384);
+  setMeter(0, currentCtx);
 }
 
 async function send(textOverride) {
@@ -193,16 +195,117 @@ input.addEventListener("keydown", e => {
 newChatBtn.addEventListener("click", async () => {
   await window.workbench.newChat();
   chat.querySelectorAll(".msg, .tool-chip, .approval").forEach(el => el.remove());
-  setMeter(0, 16384);
+  setMeter(0, currentCtx);
   setBusy(false, "New chat started");
 });
 autoApprove.addEventListener("change", () =>
   window.workbench.setSettings({ autoApprove: autoApprove.checked }));
 modelSelect.addEventListener("change", () =>
   window.workbench.setSettings({ model: modelSelect.value }));
+ctxSelect.addEventListener("change", () => {
+  currentCtx = parseInt(ctxSelect.value, 10);
+  window.workbench.setSettings({ numCtx: currentCtx });
+  setMeter(0, currentCtx);
+});
 
 document.querySelectorAll(".starter").forEach(btn =>
   btn.addEventListener("click", () => send(btn.textContent)));
+
+/* ---------- Quick / Smart modes ---------- */
+
+const modeQuick = document.getElementById("modeQuick");
+const modeSmart = document.getElementById("modeSmart");
+let pulling = false;
+
+function markMode(mode) {
+  modeQuick.classList.toggle("active", mode === "quick");
+  modeSmart.classList.toggle("active", mode === "smart");
+}
+
+async function setMode(mode) {
+  if (busy || pulling) return;
+  const res = await window.workbench.setMode(mode);
+  if (!res.ok) { addMsg("msg-error", res.error); return; }
+
+  if (res.needsPull) {
+    offerDownload(mode, res.needsPull);
+    return; // stay on current mode until the download finishes
+  }
+  markMode(mode);
+  modelSelect.value = res.model;
+  statusBar.hidden = false;
+  statusText.className = "status-text";
+  statusText.textContent = mode === "smart"
+    ? "Smart mode on — better answers, expect slower replies"
+    : "Quick mode on — fast replies";
+}
+
+function offerDownload(mode, modelName) {
+  const card = document.createElement("div");
+  card.className = "approval";
+  const head = document.createElement("div");
+  head.className = "approval-title";
+  head.textContent = "Smart mode needs a one-time download";
+  const p = document.createElement("div");
+  p.textContent = `The smarter model (${modelName}) is about 18 GB and downloads once. ` +
+    `You can keep working in Quick mode while it downloads.`;
+  const bar = document.createElement("div");
+  bar.className = "dl-bar";
+  const fill = document.createElement("div");
+  bar.appendChild(fill);
+  bar.hidden = true;
+  const actions = document.createElement("div");
+  actions.className = "approval-actions";
+  const go = document.createElement("button");
+  go.className = "btn btn-primary";
+  go.textContent = "Download now";
+  const skip = document.createElement("button");
+  skip.className = "btn btn-deny";
+  skip.textContent = "Not now";
+
+  go.addEventListener("click", async () => {
+    pulling = true;
+    actions.remove();
+    bar.hidden = false;
+    const res = await window.workbench.pullModel(modelName);
+    pulling = false;
+    if (res.ok) {
+      head.textContent = "Smart model ready";
+      p.textContent = "Smart mode is now on.";
+      bar.remove();
+      markMode(mode);
+      statusText.textContent = "Smart mode on — better answers, expect slower replies";
+    } else {
+      head.textContent = "Download didn't finish";
+      p.textContent = friendlyError(res.error) +
+        " You can also run:  ollama pull " + modelName;
+      bar.remove();
+    }
+  });
+  skip.addEventListener("click", () => card.remove());
+
+  actions.append(go, skip);
+  card.append(head, p, bar, actions);
+  chat.appendChild(card);
+  chat.scrollTop = chat.scrollHeight;
+
+  window.workbench.on("agent:pull", d => {
+    if (d.total) {
+      const pct = Math.round((d.completed / d.total) * 100);
+      fill.style.width = pct + "%";
+      statusBar.hidden = false;
+      statusText.className = "status-text";
+      statusText.textContent =
+        `Downloading smart model — ${pct}% (${(d.completed / 1e9).toFixed(1)} of ${(d.total / 1e9).toFixed(1)} GB)`;
+    } else if (d.status === "done") {
+      fill.style.width = "100%";
+      statusText.textContent = "Smart model downloaded";
+    }
+  });
+}
+
+modeQuick.addEventListener("click", () => setMode("quick"));
+modeSmart.addEventListener("click", () => setMode("smart"));
 
 /* ---------- boot: populate models ---------- */
 
