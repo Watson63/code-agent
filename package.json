@@ -1,0 +1,33 @@
+{
+  "name": "workbench-local-agent",
+  "productName": "Workbench",
+  "version": "1.0.0",
+  "description": "A private coding assistant that runs entirely on this computer via Ollama.",
+  "main": "main.js",
+  "author": "Quality Red Tag Floors",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.qrtf.workbench",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "agentCore.js",
+      "renderer/**"
+    ]
+  }
+}
